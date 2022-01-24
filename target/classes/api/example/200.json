@@ -1,0 +1,13 @@
+{
+	"ID": "10",
+	"ComapnyName" : "Mulesoft",
+	"no of employee" : 10000,
+	"Insurersdetails": [
+						{"name":"Bajaj Aliance",
+						"premiumAmt": 1500,
+						"coverAmt": "4 Lakh"},
+						{"name":"star health",
+						"premiumAmt": 1500,
+						"coverAmt": "4 Lakh"}
+					    ]
+}

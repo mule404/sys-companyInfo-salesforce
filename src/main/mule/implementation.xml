@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:json-logger="http://www.mulesoft.org/schema/mule/json-logger"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/json-logger http://www.mulesoft.org/schema/mule/json-logger/current/mule-json-logger.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="selectflow" doc:id="59c70905-b458-4d1a-82a7-40961211aacc" >
+		<json-logger:logger doc:name="Logger" doc:id="84c277dc-9316-4c56-9411-bc801cea01b0" config-ref="JSON_Logger_Config" message='#["sysAPI SFDC operation intiated" ++ now() as String]'/>
+		<salesforce:query doc:name="Query" doc:id="cb3711d1-2f0b-4b8d-b7c2-4bd3e3c41560" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query ><![CDATA[SELECT ID__c,company_name__c,cover_amt__c,Insurer_names__c,no_of_employee__c,	parents_included__c,Premiumum_amt__c
+FROM companyinfo__c WHERE ID__c = :id]]></salesforce:salesforce-query>
+			<salesforce:parameters ><![CDATA[#[output application/java
+---
+{
+	"id" : attributes.queryParams.ID
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		<ee:transform doc:name="Transform Message" doc:id="3f433f77-3927-4e7a-af9b-e9bb86174d05" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map(items,index) -> {
+	"companyName": items.company_name__c,
+	"insurer_name": items.Insurer_names__c,
+	"premiumum_amt": items.Premiumum_amt__c,
+	"insurancecoverage": items.cover_amt__c,
+	"parents_included": items.parents_included__c	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<json-logger:logger doc:name="Logger" doc:id="a6d4cac9-b056-4727-b6f0-8fada2949505" config-ref="JSON_Logger_Config" message='#["sysAPI SFDC operation completed" ++ now() as String]'/>
+	</flow>
+	<flow name="updateflow" doc:id="8dbd6960-9951-4de0-a9f7-d7e998592830" >
+		<json-logger:logger doc:name="Logger" doc:id="5ebe97b6-b1b3-40aa-919c-5cb02987435a" config-ref="JSON_Logger_Config" message='#["sysAPI SFDC update intiated" ++ now() as String]'/>
+		<ee:transform doc:name="Transform Message" doc:id="f42e8544-8900-4a1a-bc3a-bda30a3eeebb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+[{
+	Id: payload.companyID,
+	Insurer_names__c: payload.Insurer_names__c,
+	parents_included__c: payload.parents_included__c,
+	Premiumum_amt__c: payload.Premiumum_amt__c,
+	cover_amt__c: payload.cover_amt__c
+}]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:upsert doc:name="Upsert" doc:id="fd28b4b4-3d14-4e74-9154-bae402fe241b" config-ref="Salesforce_Config" objectType="companyinfo__c" externalIdFieldName="ID__c"/>
+		<json-logger:logger doc:name="Logger" doc:id="16213e21-a4ac-47a0-b527-7640d5234812" config-ref="JSON_Logger_Config" message='#["sysAPI SFDC update operation completed" ++ now() as String]'/>
+	</flow>
+</mule>

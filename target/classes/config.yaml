@@ -1,0 +1,14 @@
+sfdc:
+  username: "rakesh@apisero.com"
+  password: "Ingram#8487"
+  token: "hd1Z2A5NTH2HG5f0MNsmYRLP3"
+
+jsonlogger: 
+  applicationName: "sysapi_companyinfo_salesforce"
+  version: "v1"
+  
+mule:
+  env: "PROD"
+
+http:
+  port: "8086"
